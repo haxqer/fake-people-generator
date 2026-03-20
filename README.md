@@ -1,134 +1,136 @@
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 # Fake People Generator
 
-一个使用 Go 编写的合成个人资料生成 API。当前版本只支持美国资料生成，目标是输出“高拟真但明确为合成”的个人信息，适合测试、演示、联调、压测和假数据填充场景。
+A synthetic profile generation API written in Go. The current version supports US-only data generation and aims to produce "highly realistic but explicitly synthetic" personal information for testing, demos, integration, load testing, and fake data seeding.
 
-## 功能特性
+## Features
 
-- 支持 `REST JSON` API
-- 内置一个工具型前端页面，打开首页即可自动生成示例资料
-- 支持单条和批量生成，单次最多 `100` 条
-- 支持按 `gender`、`age_min`、`age_max`、`state` 过滤
-- 支持通过 `include_fields` 精确请求增强字段和敏感字段
-- 生成的姓名、年龄、生日、州/城市/邮编、区号、电话彼此一致
-- 返回更完整的合成资料字段：
-  - 姓名：`first_name`、`middle_name`、`last_name`、`full_name`
-  - 基本信息：`gender`、`age`、`birth_date`、`marital_status`、`occupation`
-  - 就业信息：`employment.status`、`employment.company_name`、`employment.job_title`、`employment.company_domain`、`employment.work_email`
-  - 教育信息：`education.level`、`education.degree_type`、`education.school_name`、`education.major`、`education.graduation_year`
-  - 敏感信息：`sensitive.ssn`、`sensitive.driver_license.*`、`sensitive.passport.*`、`sensitive.bank_card.*`
-  - 联系方式：`phone`、`username`、`email`
-  - 地址信息：`street_line1`、`street_line2`、`city`、`state`、`state_code`、`postal_code`
-  - 地域衍生：`time_zone`
-- 提供 OpenAPI 文档和 Swagger UI
+- Supports a `REST JSON` API
+- Includes a utility frontend page that automatically generates a sample profile on the home page
+- Supports single and batch generation, up to `100` profiles per request
+- Supports filtering by `gender`, `age_min`, `age_max`, and `state`
+- Supports requesting enhanced fields and sensitive fields precisely through `include_fields`
+- Keeps generated name, age, birth date, state/city/ZIP code, area code, and phone number consistent with each other
+- Returns a more complete synthetic profile schema:
+  - Name: `first_name`, `middle_name`, `last_name`, `full_name`
+  - Basic info: `gender`, `age`, `birth_date`, `marital_status`, `occupation`
+  - Employment info: `employment.status`, `employment.company_name`, `employment.job_title`, `employment.company_domain`, `employment.work_email`
+  - Education info: `education.level`, `education.degree_type`, `education.school_name`, `education.major`, `education.graduation_year`
+  - Sensitive info: `sensitive.ssn`, `sensitive.driver_license.*`, `sensitive.passport.*`, `sensitive.bank_card.*`
+  - Contact info: `phone`, `username`, `email`
+  - Address info: `street_line1`, `street_line2`, `city`, `state`, `state_code`, `postal_code`
+  - Region-derived field: `time_zone`
+- Provides OpenAPI documentation and Swagger UI
 
-## 说明
+## Notes
 
-- 当前仅支持 `country = "US"`
-- 输出数据是合成资料，不保证对应真实存在的人、住址或电话号码
-- 默认返回基础字段；教育增强和敏感字段只有在 `include_fields` 显式声明时才返回
+- Currently only supports `country = "US"`
+- Returned data is synthetic and does not guarantee a match to a real person, address, or phone number
+- By default only base fields are returned; education enhancements and sensitive fields are returned only when explicitly requested in `include_fields`
 
-## 运行方式
+## Running
 
-要求：
+Requirements:
 
 - Go `1.25+`
 
-启动服务：
+Start the service:
 
 ```bash
 go run ./cmd/server
 ```
 
-默认监听：
+Default listen address:
 
 ```text
 http://127.0.0.1:8080
 ```
 
-首页工具页面：
+Home page tool:
 
 ```text
 http://127.0.0.1:8080/
 ```
 
-也可以通过环境变量修改端口：
+You can also change the port with an environment variable:
 
 ```bash
 ADDR=:9090 go run ./cmd/server
 ```
 
-或者使用更适合容器平台的 `PORT`：
+Or use the more container-friendly `PORT`:
 
 ```bash
 PORT=9090 go run ./cmd/server
 ```
 
-## Docker 部署
+## Docker Deployment
 
-构建镜像：
+Build the image:
 
 ```bash
 docker build -t fake-people-generator:local .
 ```
 
-启动容器：
+Run the container:
 
 ```bash
 docker run --rm -p 8080:8080 fake-people-generator:local
 ```
 
-如果需要自定义容器内监听端口：
+If you need a custom listen port inside the container:
 
 ```bash
 docker run --rm -e PORT=9090 -p 9090:9090 fake-people-generator:local
 ```
 
-当前 `Dockerfile` 使用多阶段构建：
+The current `Dockerfile` uses a multi-stage build:
 
-- 构建阶段：`golang:1.25-bookworm`
-- 运行阶段：`distroless static-debian12:nonroot`
-- 默认容器端口：`8080`
-- 支持 `linux/amd64` 和 `linux/arm64` 多架构构建
+- Build stage: `golang:1.25-bookworm`
+- Runtime stage: `distroless static-debian12:nonroot`
+- Default container port: `8080`
+- Supports multi-arch builds for `linux/amd64` and `linux/arm64`
 
-## GitHub Actions 自动构建并推送 Docker Hub
+## GitHub Actions: Build and Push to Docker Hub
 
-仓库已添加工作流：
+The repository already includes this workflow:
 
 ```text
 .github/workflows/docker.yml
 ```
 
-触发方式：
+Triggers:
 
-- push 到 `main`
-- push 版本标签，例如 `v0.1.0`
-- 手动触发 `workflow_dispatch`
+- Push to `main`
+- Push a version tag such as `v0.1.0`
+- Manual `workflow_dispatch`
 
-在 GitHub 仓库里需要先配置以下 secrets：
+Configure the following GitHub repository secrets first:
 
 - `DOCKERHUB_USERNAME`
 - `DOCKERHUB_TOKEN`
 
-可选配置一个仓库变量：
+You can optionally configure this repository variable:
 
 - `DOCKERHUB_REPOSITORY`
 
-说明：
+Notes:
 
-- 如果没有设置 `DOCKERHUB_REPOSITORY`，默认使用当前 GitHub 仓库名作为 Docker Hub 镜像名
-- 最终镜像名默认是 `docker.io/<DOCKERHUB_USERNAME>/fake-people-generator`
-- `main` 分支会推送 `latest`、`main` 和 `sha-<commit>` 标签
-- `v*` 标签会推送对应版本标签，例如 `v0.1.0`
-- 工作流会先执行 `go test ./...`，通过后再构建并推送多架构镜像
+- If `DOCKERHUB_REPOSITORY` is not set, the current GitHub repository name is used as the Docker Hub image name by default
+- The final image name defaults to `docker.io/<DOCKERHUB_USERNAME>/fake-people-generator`
+- The `main` branch pushes `latest`, `main`, and `sha-<commit>` tags
+- `v*` tags push the matching version tag, for example `v0.1.0`
+- The workflow runs `go test ./...` before building and pushing multi-arch images
 
-发布示例：
+Release example:
 
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-拉取示例：
+Pull example:
 
 ```bash
 docker pull docker.io/<DOCKERHUB_USERNAME>/fake-people-generator:latest
@@ -136,15 +138,15 @@ docker pull docker.io/<DOCKERHUB_USERNAME>/fake-people-generator:latest
 
 ## API
 
-### 健康检查
+### Health Check
 
 ```bash
 curl http://127.0.0.1:8080/healthz
 ```
 
-### 生成资料
+### Generate Profiles
 
-请求：
+Request:
 
 ```bash
 curl -X POST http://127.0.0.1:8080/v1/profiles/generate \
@@ -166,7 +168,7 @@ curl -X POST http://127.0.0.1:8080/v1/profiles/generate \
   }'
 ```
 
-响应示例：
+Example response:
 
 ```json
 {
@@ -235,9 +237,9 @@ curl -X POST http://127.0.0.1:8080/v1/profiles/generate \
 }
 ```
 
-### 请求参数
+### Request Parameters
 
-请求体：
+Request body:
 
 ```json
 {
@@ -257,22 +259,22 @@ curl -X POST http://127.0.0.1:8080/v1/profiles/generate \
 }
 ```
 
-规则：
+Rules:
 
-- `country` 必填，当前只能是 `US`
-- `count` 选填，默认 `1`，范围 `1..100`
-- `filters.gender` 选填，支持 `male`、`female`、`random`
-- `filters.age_min` 和 `filters.age_max` 必须一起传
-- `filters.state` 为两位美国州代码，例如 `CA`、`NY`、`TX`
-- `include_fields` 选填；未声明的增强字段不会返回
+- `country` is required and currently can only be `US`
+- `count` is optional, defaults to `1`, and must be within `1..100`
+- `filters.gender` is optional and supports `male`, `female`, and `random`
+- `filters.age_min` and `filters.age_max` must be provided together
+- `filters.state` is a two-letter US state code such as `CA`, `NY`, or `TX`
+- `include_fields` is optional; undeclared enhanced fields are not returned
 
-常用 `include_fields`：
+Common `include_fields` values:
 
-- 教育：`education.level`、`education.degree_type`、`education.school_name`、`education.major`、`education.graduation_year`、`education.student_status`、`education.school_city`、`education.school_state`、`education.school_email`
-- 就业增强：`employment.industry`、`employment.seniority`、`employment.start_date`、`employment.work_mode`、`employment.manager_name`、`employment.office_city`、`employment.office_state`
-- 敏感：`sensitive.ssn`、`sensitive.driver_license.number`、`sensitive.driver_license.state_code`、`sensitive.passport.number`、`sensitive.passport.country`、`sensitive.bank_card.brand`、`sensitive.bank_card.number`、`sensitive.bank_card.expiry_month`、`sensitive.bank_card.expiry_year`、`sensitive.bank_card.cvv`
+- Education: `education.level`, `education.degree_type`, `education.school_name`, `education.major`, `education.graduation_year`, `education.student_status`, `education.school_city`, `education.school_state`, `education.school_email`
+- Employment enhancements: `employment.industry`, `employment.seniority`, `employment.start_date`, `employment.work_mode`, `employment.manager_name`, `employment.office_city`, `employment.office_state`
+- Sensitive: `sensitive.ssn`, `sensitive.driver_license.number`, `sensitive.driver_license.state_code`, `sensitive.passport.number`, `sensitive.passport.country`, `sensitive.bank_card.brand`, `sensitive.bank_card.number`, `sensitive.bank_card.expiry_month`, `sensitive.bank_card.expiry_year`, `sensitive.bank_card.cvv`
 
-### 错误响应
+### Error Response
 
 ```json
 {
@@ -283,19 +285,19 @@ curl -X POST http://127.0.0.1:8080/v1/profiles/generate \
 }
 ```
 
-## 文档
+## Documentation
 
-- 首页工具：`http://127.0.0.1:8080/`
+- Home page tool: `http://127.0.0.1:8080/`
 - OpenAPI JSON: `http://127.0.0.1:8080/openapi.json`
 - Swagger UI: `http://127.0.0.1:8080/docs`
 
-说明：
+Notes:
 
-- `/docs` 使用 Swagger UI CDN 资源，打开页面时需要网络
+- `/docs` uses Swagger UI assets from a CDN, so loading the page requires network access
 
-## 测试
+## Testing
 
-运行全部测试：
+Run all tests:
 
 ```bash
 go test ./...
