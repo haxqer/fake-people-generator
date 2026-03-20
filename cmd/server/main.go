@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"fake-people-generator/internal/api"
@@ -11,7 +12,17 @@ import (
 )
 
 func main() {
-	addr := os.Getenv("ADDR")
+	addr := strings.TrimSpace(os.Getenv("ADDR"))
+	if addr == "" {
+		port := strings.TrimSpace(os.Getenv("PORT"))
+		if port != "" {
+			if strings.HasPrefix(port, ":") {
+				addr = port
+			} else {
+				addr = ":" + port
+			}
+		}
+	}
 	if addr == "" {
 		addr = ":8080"
 	}

@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Fake People Generator Studio</title>
+    <meta
+      name="description"
+      content="面向测试、演示和联调用途的合成资料生成工具。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M19 18h26v6H26v10h16v6H26v16h-7z' fill='white'/%3E%3C/svg%3E"
+    />
+    <script defer src="/assets/app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="hero-kicker">Synthetic Identity Workbench</p>
+          <h1>Fake People Generator Studio</h1>
+          <p class="hero-description">
+            一个面向测试、演示和联调的合成资料生成台。默认只展示高频参数，把年龄、字段扩展和原始 JSON 收进
+            Advanced，需要时再展开。
+          </p>
+          <div class="hero-benefits">
+            <article class="benefit-card">
+              <span>Default-safe</span>
+              <strong>Core fields first</strong>
+              <p>默认先返回高频基础资料，不让低频配置挤占主界面。</p>
+            </article>
+            <article class="benefit-card">
+              <span>Batch-ready</span>
+              <strong>Fast iteration loop</strong>
+              <p>参数修改后可自动刷新，适合快速调试页面、接口和 mock 流程。</p>
+            </article>
+            <article class="benefit-card">
+              <span>Copy-friendly</span>
+              <strong>JSON stays close</strong>
+              <p>请求和响应原文仍然保留，但默认折叠，避免干扰主要任务。</p>
+            </article>
+          </div>
+        </div>
+        <aside class="hero-aside">
+          <div class="spotlight-card">
+            <p class="section-label">Studio Snapshot</p>
+            <h2>Less clutter, same power.</h2>
+            <div class="hero-stats">
+              <article>
+                <span>目标场景</span>
+                <strong>QA / Demo / Mock API</strong>
+              </article>
+              <article>
+                <span>接口地址</span>
+                <strong>/v1/profiles/generate</strong>
+              </article>
+              <article>
+                <span>资料范围</span>
+                <strong>US only / 1-100 profiles</strong>
+              </article>
+              <article>
+                <span>部署方式</span>
+                <strong>Go Binary / Docker</strong>
+              </article>
+            </div>
+            <p class="spotlight-note">
+              大多数用户只需要数量、性别、州和自动生成。其余配置保留，但不再默认占据整屏空间。
+            </p>
+          </div>
+        </aside>
+      </header>
+
+      <main class="workspace">
+        <aside class="control-panel panel">
+          <div class="panel-header stacked">
+            <div>
+              <p class="section-label">Primary Controls</p>
+              <h2>先完成常用设置</h2>
+            </div>
+            <p class="panel-copy">
+              默认值已经适合大多数预览场景。只有当你需要更多筛选或更多返回字段时，再展开
+              Advanced。
+            </p>
+          </div>
+
+          <form id="generator-form" class="form-stack" novalidate>
+            <div class="mini-grid">
+              <article class="mini-card">
+                <span>Dataset</span>
+                <strong>United States</strong>
+                <p>当前版本固定输出 US 合成资料。</p>
+              </article>
+              <article class="mini-card">
+                <span>Default mode</span>
+                <strong>Auto preview on</strong>
+                <p>修改参数后会自动拉取一版新的示例结果。</p>
+              </article>
+            </div>
+
+            <div class="field-grid two-up primary-grid">
+              <label class="field">
+                <span>Count</span>
+                <input
+                  id="count"
+                  name="count"
+                  type="number"
+                  min="1"
+                  max="100"
+                  value="3"
+                  inputmode="numeric"
+                />
+              </label>
+
+              <label class="field">
+                <span>Gender</span>
+                <select id="gender" name="gender">
+                  <option value="random" selected>random</option>
+                  <option value="female">female</option>
+                  <option value="male">male</option>
+                </select>
+              </label>
+
+              <label class="field full-width">
+                <span>State</span>
+                <input
+                  id="state"
+                  name="state"
+                  type="text"
+                  maxlength="2"
+                  placeholder="CA"
+                  autocomplete="off"
+                />
+              </label>
+            </div>
+
+            <div class="toggles">
+              <label class="switch">
+                <input id="auto-generate" name="auto_generate" type="checkbox" checked />
+                <span>参数变动后自动生成</span>
+              </label>
+            </div>
+
+            <p id="form-message" class="form-message" aria-live="polite"></p>
+
+            <div class="action-row">
+              <button id="generate-button" type="submit" class="button primary">
+                Generate
+              </button>
+              <button id="reset-button" type="button" class="button secondary">
+                Reset
+              </button>
+              <button id="copy-request-button" type="button" class="button ghost">
+                Copy Request
+              </button>
+            </div>
+
+            <details id="advanced-panel" class="advanced-panel">
+              <summary class="advanced-summary">
+                <div>
+                  <p class="section-label">Advanced</p>
+                  <h3>低频筛选、字段扩展与请求预览</h3>
+                </div>
+                <div class="advanced-meta">
+                  <span id="advanced-summary-text" class="summary-hint">Age off / Auto on</span>
+                  <span id="field-count" class="pill">0 fields</span>
+                </div>
+              </summary>
+
+              <div class="advanced-content">
+                <section class="subsection">
+                  <div class="subsection-header">
+                    <div>
+                      <p class="section-label">Age Filter</p>
+                      <h3>年龄范围</h3>
+                    </div>
+                    <label class="switch">
+                      <input id="age-enabled" name="age_enabled" type="checkbox" />
+                      <span>启用</span>
+                    </label>
+                  </div>
+
+                  <div class="field-grid two-up">
+                    <label class="field">
+                      <span>Min Age</span>
+                      <input
+                        id="age-min"
+                        name="age_min"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value="24"
+                        inputmode="numeric"
+                        disabled
+                      />
+                    </label>
+
+                    <label class="field">
+                      <span>Max Age</span>
+                      <input
+                        id="age-max"
+                        name="age_max"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value="42"
+                        inputmode="numeric"
+                        disabled
+                      />
+                    </label>
+                  </div>
+                </section>
+
+                <section class="subsection">
+                  <div class="subsection-header">
+                    <div>
+                      <p class="section-label">Field Expansion</p>
+                      <h3>附加字段</h3>
+                    </div>
+                  </div>
+
+                  <p class="subsection-note">
+                    默认只勾选非敏感增强字段。敏感字段仅建议用于测试环境或隔离数据集。
+                  </p>
+
+                  <div id="field-groups" class="field-groups"></div>
+                </section>
+
+                <details class="code-disclosure">
+                  <summary class="preview-header">
+                    <div>
+                      <p class="section-label">Request Preview</p>
+                      <h3>将要发送的 JSON</h3>
+                    </div>
+                    <span class="summary-hint">展开查看</span>
+                  </summary>
+                  <pre id="request-preview" class="code-block"></pre>
+                </details>
+              </div>
+            </details>
+          </form>
+        </aside>
+
+        <section class="results-panel panel">
+          <div class="panel-header results-head">
+            <div>
+              <p class="section-label">Generated Output</p>
+              <h2>结果区优先展示可读内容</h2>
+            </div>
+            <div class="action-row compact">
+              <button id="copy-response-button" type="button" class="button ghost">
+                Copy JSON
+              </button>
+              <button id="download-response-button" type="button" class="button secondary">
+                Download
+              </button>
+            </div>
+          </div>
+
+          <div id="status-banner" class="status-banner idle" aria-live="polite">
+            等待首次自动生成。
+          </div>
+
+          <div id="meta-grid" class="meta-grid"></div>
+
+          <div id="profiles" class="profiles-grid">
+            <article class="empty-state">
+              <p>结果会显示在这里。</p>
+            </article>
+          </div>
+
+          <details class="code-disclosure response-disclosure">
+            <summary class="preview-header">
+              <div>
+                <p class="section-label">Raw Response</p>
+                <h3>原始响应</h3>
+              </div>
+              <span class="summary-hint">展开查看</span>
+            </summary>
+            <pre id="response-preview" class="code-block large"></pre>
+          </details>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

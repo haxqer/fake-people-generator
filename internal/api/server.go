@@ -11,6 +11,7 @@ import (
 
 	"fake-people-generator/internal/generator"
 	"fake-people-generator/internal/openapi"
+	"fake-people-generator/internal/web"
 )
 
 type generateProfilesRequest struct {
@@ -49,6 +50,8 @@ type generateProfilesResponse struct {
 
 func NewServer(gen *generator.Generator) http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /{$}", web.IndexHandler())
+	mux.Handle("GET /assets/", http.StripPrefix("/assets/", web.AssetsHandler()))
 	mux.HandleFunc("GET /healthz", handleHealthz)
 	mux.HandleFunc("POST /v1/profiles/generate", generateProfiles(gen))
 	mux.HandleFunc("GET /openapi.json", handleOpenAPI)

@@ -5,6 +5,7 @@
 ## 功能特性
 
 - 支持 `REST JSON` API
+- 内置一个工具型前端页面，打开首页即可自动生成示例资料
 - 支持单条和批量生成，单次最多 `100` 条
 - 支持按 `gender`、`age_min`、`age_max`、`state` 过滤
 - 支持通过 `include_fields` 精确请求增强字段和敏感字段
@@ -44,10 +45,42 @@ go run ./cmd/server
 http://127.0.0.1:8080
 ```
 
+首页工具页面：
+
+```text
+http://127.0.0.1:8080/
+```
+
 也可以通过环境变量修改端口：
 
 ```bash
 ADDR=:9090 go run ./cmd/server
+```
+
+或者使用更适合容器平台的 `PORT`：
+
+```bash
+PORT=9090 go run ./cmd/server
+```
+
+## Docker 部署
+
+构建镜像：
+
+```bash
+docker build -t fake-people-generator .
+```
+
+启动容器：
+
+```bash
+docker run --rm -p 8080:8080 fake-people-generator
+```
+
+如果需要自定义容器内监听端口：
+
+```bash
+docker run --rm -e PORT=9090 -p 9090:9090 fake-people-generator
 ```
 
 ## API
@@ -201,6 +234,7 @@ curl -X POST http://127.0.0.1:8080/v1/profiles/generate \
 
 ## 文档
 
+- 首页工具：`http://127.0.0.1:8080/`
 - OpenAPI JSON: `http://127.0.0.1:8080/openapi.json`
 - Swagger UI: `http://127.0.0.1:8080/docs`
 

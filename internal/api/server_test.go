@@ -241,6 +241,31 @@ func TestOpenAPIAndDocs(t *testing.T) {
 		return time.Date(2026, time.March, 20, 15, 4, 5, 0, time.UTC)
 	}))
 
+	homeReq := httptest.NewRequest(http.MethodGet, "/", nil)
+	homeRec := httptest.NewRecorder()
+	handler.ServeHTTP(homeRec, homeReq)
+
+	if homeRec.Code != http.StatusOK {
+		t.Fatalf("expected / 200, got %d", homeRec.Code)
+	}
+	if !strings.Contains(homeRec.Body.String(), "Fake People Generator Studio") {
+		t.Fatalf("expected homepage to include app title")
+	}
+	if !strings.Contains(homeRec.Body.String(), "/assets/app.js") {
+		t.Fatalf("expected homepage to include app script")
+	}
+
+	assetsReq := httptest.NewRequest(http.MethodGet, "/assets/app.js", nil)
+	assetsRec := httptest.NewRecorder()
+	handler.ServeHTTP(assetsRec, assetsReq)
+
+	if assetsRec.Code != http.StatusOK {
+		t.Fatalf("expected /assets/app.js 200, got %d", assetsRec.Code)
+	}
+	if !strings.Contains(assetsRec.Body.String(), "generateProfiles") {
+		t.Fatalf("expected app.js to include generateProfiles")
+	}
+
 	openAPIReq := httptest.NewRequest(http.MethodGet, "/openapi.json", nil)
 	openAPIRec := httptest.NewRecorder()
 	handler.ServeHTTP(openAPIRec, openAPIReq)
