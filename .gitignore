@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+
+# Build output
+/bin/
+/dist/
+*.exe
+*.out
+*.test
+
+# Coverage
+coverage.out
+*.coverprofile
