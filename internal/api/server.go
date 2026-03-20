@@ -14,9 +14,10 @@ import (
 )
 
 type generateProfilesRequest struct {
-	Country string                 `json:"country"`
-	Count   *int                   `json:"count,omitempty"`
-	Filters generateFiltersRequest `json:"filters,omitempty"`
+	Country       string                 `json:"country"`
+	Count         *int                   `json:"count,omitempty"`
+	Filters       generateFiltersRequest `json:"filters,omitempty"`
+	IncludeFields []string               `json:"include_fields,omitempty"`
 }
 
 type generateFiltersRequest struct {
@@ -78,8 +79,9 @@ func generateProfiles(gen *generator.Generator) http.HandlerFunc {
 		}
 
 		result, err := gen.Generate(generator.GenerateInput{
-			Country: req.Country,
-			Count:   count,
+			Country:       req.Country,
+			Count:         count,
+			IncludeFields: req.IncludeFields,
 			Filters: generator.Filters{
 				Gender:    generator.Gender(strings.ToLower(strings.TrimSpace(req.Filters.Gender))),
 				AgeMin:    req.Filters.AgeMin,

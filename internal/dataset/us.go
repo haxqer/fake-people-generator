@@ -27,6 +27,14 @@ type Data struct {
 	LastNames       []WeightedValue
 	StreetNames     []WeightedValue
 	StreetSuffixes  []WeightedValue
+	EmailDomains    []WeightedValue
+	Occupations     []WeightedValue
+	UnitDesignators []WeightedValue
+	CompanyPrefixes []WeightedValue
+	CompanyNouns    []WeightedValue
+	CompanySuffixes []WeightedValue
+	Departments     []WeightedValue
+	DomainSuffixes  []WeightedValue
 }
 
 var usData = Data{
@@ -116,6 +124,45 @@ var usData = Data{
 	StreetSuffixes: []WeightedValue{
 		{Value: "Street", Weight: 10}, {Value: "Avenue", Weight: 8}, {Value: "Drive", Weight: 6}, {Value: "Lane", Weight: 5},
 		{Value: "Road", Weight: 7}, {Value: "Court", Weight: 4}, {Value: "Boulevard", Weight: 4}, {Value: "Place", Weight: 3},
+	},
+	EmailDomains: []WeightedValue{
+		{Value: "gmail.com", Weight: 35}, {Value: "outlook.com", Weight: 18}, {Value: "yahoo.com", Weight: 16}, {Value: "icloud.com", Weight: 12},
+		{Value: "hotmail.com", Weight: 8}, {Value: "proton.me", Weight: 5}, {Value: "aol.com", Weight: 4}, {Value: "live.com", Weight: 2},
+	},
+	Occupations: []WeightedValue{
+		{Value: "Software Engineer", Weight: 8}, {Value: "Project Manager", Weight: 6}, {Value: "Sales Associate", Weight: 6}, {Value: "Registered Nurse", Weight: 6},
+		{Value: "Teacher", Weight: 6}, {Value: "Marketing Specialist", Weight: 5}, {Value: "Financial Analyst", Weight: 5}, {Value: "Customer Success Manager", Weight: 4},
+		{Value: "Graphic Designer", Weight: 4}, {Value: "Operations Coordinator", Weight: 4}, {Value: "Accountant", Weight: 5}, {Value: "Warehouse Supervisor", Weight: 3},
+		{Value: "Electrician", Weight: 3}, {Value: "Pharmacist", Weight: 2}, {Value: "Real Estate Agent", Weight: 3}, {Value: "HR Generalist", Weight: 3},
+		{Value: "Office Administrator", Weight: 4}, {Value: "Restaurant Manager", Weight: 3}, {Value: "Delivery Driver", Weight: 3}, {Value: "Business Analyst", Weight: 4},
+	},
+	UnitDesignators: []WeightedValue{
+		{Value: "Apt", Weight: 55}, {Value: "Suite", Weight: 18}, {Value: "Unit", Weight: 17}, {Value: "#", Weight: 10},
+	},
+	CompanyPrefixes: []WeightedValue{
+		{Value: "Blue", Weight: 6}, {Value: "Northstar", Weight: 5}, {Value: "Summit", Weight: 6}, {Value: "Beacon", Weight: 4},
+		{Value: "Evergreen", Weight: 5}, {Value: "Atlas", Weight: 5}, {Value: "Redwood", Weight: 4}, {Value: "Harbor", Weight: 4},
+		{Value: "Pacific", Weight: 5}, {Value: "Hudson", Weight: 4}, {Value: "Metro", Weight: 5}, {Value: "Canyon", Weight: 3},
+		{Value: "Lakeside", Weight: 3}, {Value: "Silver", Weight: 3}, {Value: "Granite", Weight: 3}, {Value: "Pioneer", Weight: 4},
+	},
+	CompanyNouns: []WeightedValue{
+		{Value: "Systems", Weight: 6}, {Value: "Solutions", Weight: 6}, {Value: "Health", Weight: 5}, {Value: "Logistics", Weight: 5},
+		{Value: "Partners", Weight: 4}, {Value: "Foods", Weight: 3}, {Value: "Dynamics", Weight: 4}, {Value: "Financial", Weight: 4},
+		{Value: "Holdings", Weight: 3}, {Value: "Services", Weight: 6}, {Value: "Technologies", Weight: 5}, {Value: "Retail", Weight: 3},
+		{Value: "Manufacturing", Weight: 3}, {Value: "Media", Weight: 3}, {Value: "Energy", Weight: 3}, {Value: "Networks", Weight: 4},
+		{Value: "Consulting", Weight: 4}, {Value: "Supply", Weight: 2}, {Value: "Laboratories", Weight: 2}, {Value: "Ventures", Weight: 2},
+	},
+	CompanySuffixes: []WeightedValue{
+		{Value: "Inc.", Weight: 10}, {Value: "LLC", Weight: 8}, {Value: "Group", Weight: 6}, {Value: "Co.", Weight: 5},
+		{Value: "Corporation", Weight: 4}, {Value: "Partners", Weight: 3}, {Value: "Brands", Weight: 2},
+	},
+	Departments: []WeightedValue{
+		{Value: "Engineering", Weight: 6}, {Value: "Operations", Weight: 6}, {Value: "Sales", Weight: 5}, {Value: "Marketing", Weight: 4},
+		{Value: "Finance", Weight: 4}, {Value: "Human Resources", Weight: 3}, {Value: "Customer Success", Weight: 3}, {Value: "Product", Weight: 3},
+		{Value: "Clinical", Weight: 2}, {Value: "Design", Weight: 2}, {Value: "Facilities", Weight: 2}, {Value: "Administration", Weight: 3},
+	},
+	DomainSuffixes: []WeightedValue{
+		{Value: ".com", Weight: 18}, {Value: ".co", Weight: 3}, {Value: ".net", Weight: 2}, {Value: ".io", Weight: 2},
 	},
 }
 

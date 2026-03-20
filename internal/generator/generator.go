@@ -27,9 +27,10 @@ type Filters struct {
 }
 
 type GenerateInput struct {
-	Country string
-	Count   int
-	Filters Filters
+	Country       string
+	Count         int
+	Filters       Filters
+	IncludeFields []string
 }
 
 type Result struct {
@@ -40,16 +41,41 @@ type Result struct {
 }
 
 type Profile struct {
-	ID        string  `json:"id"`
-	Country   string  `json:"country"`
-	Gender    Gender  `json:"gender"`
-	FirstName string  `json:"first_name"`
-	LastName  string  `json:"last_name"`
-	FullName  string  `json:"full_name"`
-	Age       int     `json:"age"`
-	BirthDate string  `json:"birth_date"`
-	Phone     Phone   `json:"phone"`
-	Address   Address `json:"address"`
+	ID            string     `json:"id"`
+	Country       string     `json:"country"`
+	Gender        Gender     `json:"gender"`
+	FirstName     string     `json:"first_name"`
+	MiddleName    string     `json:"middle_name"`
+	LastName      string     `json:"last_name"`
+	FullName      string     `json:"full_name"`
+	Age           int        `json:"age"`
+	BirthDate     string     `json:"birth_date"`
+	MaritalStatus string     `json:"marital_status"`
+	Occupation    string     `json:"occupation"`
+	Username      string     `json:"username"`
+	Email         string     `json:"email"`
+	TimeZone      string     `json:"time_zone"`
+	Employment    Employment `json:"employment"`
+	Education     *Education `json:"education,omitempty"`
+	Sensitive     *Sensitive `json:"sensitive,omitempty"`
+	Phone         Phone      `json:"phone"`
+	Address       Address    `json:"address"`
+}
+
+type Employment struct {
+	Status        string `json:"status"`
+	CompanyName   string `json:"company_name,omitempty"`
+	CompanyDomain string `json:"company_domain,omitempty"`
+	JobTitle      string `json:"job_title,omitempty"`
+	Department    string `json:"department,omitempty"`
+	WorkEmail     string `json:"work_email,omitempty"`
+	Industry      string `json:"industry,omitempty"`
+	Seniority     string `json:"seniority,omitempty"`
+	StartDate     string `json:"start_date,omitempty"`
+	WorkMode      string `json:"work_mode,omitempty"`
+	ManagerName   string `json:"manager_name,omitempty"`
+	OfficeCity    string `json:"office_city,omitempty"`
+	OfficeState   string `json:"office_state,omitempty"`
 }
 
 type Phone struct {
@@ -60,6 +86,7 @@ type Phone struct {
 
 type Address struct {
 	StreetLine1 string `json:"street_line1"`
+	StreetLine2 string `json:"street_line2,omitempty"`
 	City        string `json:"city"`
 	State       string `json:"state"`
 	StateCode   string `json:"state_code"`
@@ -102,6 +129,10 @@ func (g *Generator) Generate(input GenerateInput) (Result, error) {
 	if err != nil {
 		return Result{}, err
 	}
+	selection, err := normalizeIncludeFields(input.IncludeFields)
+	if err != nil {
+		return Result{}, err
+	}
 
 	generatedAt := g.now().UTC().Truncate(time.Second)
 	rng, err := newRandom()
@@ -111,7 +142,7 @@ func (g *Generator) Generate(input GenerateInput) (Result, error) {
 
 	profiles := make([]Profile, 0, input.Count)
 	for i := 0; i < input.Count; i++ {
-		profile, err := g.generateProfile(rng, generatedAt, filters)
+		profile, err := g.generateProfile(rng, generatedAt, filters, selection)
 		if err != nil {
 			return Result{}, err
 		}
@@ -159,7 +190,7 @@ func normalizeFilters(filters Filters, data *dataset.Data) (Filters, error) {
 	return normalized, nil
 }
 
-func (g *Generator) generateProfile(rng *mathrand.Rand, generatedAt time.Time, filters Filters) (Profile, error) {
+func (g *Generator) generateProfile(rng *mathrand.Rand, generatedAt time.Time, filters Filters, selection fieldSelection) (Profile, error) {
 	state, err := g.selectState(rng, filters)
 	if err != nil {
 		return Profile{}, err
@@ -172,6 +203,7 @@ func (g *Generator) generateProfile(rng *mathrand.Rand, generatedAt time.Time, f
 
 	actualGender := resolveGender(rng, filters.Gender)
 	firstName := g.selectFirstName(rng, actualGender)
+	middleName := g.selectDistinctFirstName(rng, actualGender, firstName)
 	lastName := selectWeightedValue(rng, g.data.LastNames)
 	age := selectAge(rng, filters)
 	birthDate := randomBirthDate(rng, generatedAt, age)
@@ -185,23 +217,40 @@ func (g *Generator) generateProfile(rng *mathrand.Rand, generatedAt time.Time, f
 	phone := generatePhone(rng, areaCode)
 	address := Address{
 		StreetLine1: generateStreetAddress(rng, g.data),
+		StreetLine2: generateAddressLine2(rng, g.data),
 		City:        city.Name,
 		State:       state.Name,
 		StateCode:   state.Code,
 		PostalCode:  city.PostalCode,
 	}
+	username := generateUsername(rng, firstName, lastName, birthDate.Format("2006-01-02"))
+	email := generateEmail(rng, username, firstName, lastName, g.data)
+	occupation := selectOccupation(rng, age, g.data)
+	educationRecord := generateEducationRecord(rng, generatedAt, age, occupation, firstName, lastName, state, city)
+	employment := g.generateEmployment(rng, age, occupation, firstName, lastName, state, city, selection, educationRecord, generatedAt)
+	education := buildEducation(selection, educationRecord)
+	sensitive := buildSensitive(selection, rng, generatedAt, state)
 
 	return Profile{
-		ID:        profileID,
-		Country:   "US",
-		Gender:    actualGender,
-		FirstName: firstName,
-		LastName:  lastName,
-		FullName:  firstName + " " + lastName,
-		Age:       calculateAge(birthDate, generatedAt),
-		BirthDate: birthDate.Format("2006-01-02"),
-		Phone:     phone,
-		Address:   address,
+		ID:            profileID,
+		Country:       "US",
+		Gender:        actualGender,
+		FirstName:     firstName,
+		MiddleName:    middleName,
+		LastName:      lastName,
+		FullName:      buildFullName(firstName, middleName, lastName),
+		Age:           calculateAge(birthDate, generatedAt),
+		BirthDate:     birthDate.Format("2006-01-02"),
+		MaritalStatus: selectMaritalStatus(rng, age),
+		Occupation:    occupation,
+		Username:      username,
+		Email:         email,
+		TimeZone:      selectTimeZone(rng, state.Code),
+		Employment:    employment,
+		Education:     education,
+		Sensitive:     sensitive,
+		Phone:         phone,
+		Address:       address,
 	}, nil
 }
 

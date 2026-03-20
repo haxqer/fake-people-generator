@@ -44,6 +44,11 @@ func JSON() ([]byte, error) {
 										"age_max": 35,
 										"state":   "CA",
 									},
+									"include_fields": []string{
+										"education.level",
+										"employment.industry",
+										"sensitive.ssn",
+									},
 								},
 							},
 						},
@@ -92,6 +97,13 @@ func JSON() ([]byte, error) {
 						},
 						"filters": map[string]any{
 							"$ref": "#/components/schemas/GenerateFilters",
+						},
+						"include_fields": map[string]any{
+							"type": "array",
+							"items": map[string]any{
+								"type": "string",
+							},
+							"description": "Optional field-level expansions to include in the response.",
 						},
 					},
 				},
@@ -149,14 +161,29 @@ func JSON() ([]byte, error) {
 				"Profile": map[string]any{
 					"type": "object",
 					"properties": map[string]any{
-						"id":         map[string]any{"type": "string", "format": "uuid"},
-						"country":    map[string]any{"type": "string"},
-						"gender":     map[string]any{"type": "string"},
-						"first_name": map[string]any{"type": "string"},
-						"last_name":  map[string]any{"type": "string"},
-						"full_name":  map[string]any{"type": "string"},
-						"age":        map[string]any{"type": "integer"},
-						"birth_date": map[string]any{"type": "string", "format": "date"},
+						"id":             map[string]any{"type": "string", "format": "uuid"},
+						"country":        map[string]any{"type": "string"},
+						"gender":         map[string]any{"type": "string"},
+						"first_name":     map[string]any{"type": "string"},
+						"middle_name":    map[string]any{"type": "string"},
+						"last_name":      map[string]any{"type": "string"},
+						"full_name":      map[string]any{"type": "string"},
+						"age":            map[string]any{"type": "integer"},
+						"birth_date":     map[string]any{"type": "string", "format": "date"},
+						"marital_status": map[string]any{"type": "string"},
+						"occupation":     map[string]any{"type": "string"},
+						"username":       map[string]any{"type": "string"},
+						"email":          map[string]any{"type": "string", "format": "email"},
+						"time_zone":      map[string]any{"type": "string"},
+						"employment": map[string]any{
+							"$ref": "#/components/schemas/Employment",
+						},
+						"education": map[string]any{
+							"$ref": "#/components/schemas/Education",
+						},
+						"sensitive": map[string]any{
+							"$ref": "#/components/schemas/Sensitive",
+						},
 						"phone": map[string]any{
 							"$ref": "#/components/schemas/Phone",
 						},
@@ -173,10 +200,82 @@ func JSON() ([]byte, error) {
 						"area_code": map[string]any{"type": "string"},
 					},
 				},
+				"Employment": map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"status":         map[string]any{"type": "string"},
+						"company_name":   map[string]any{"type": "string"},
+						"company_domain": map[string]any{"type": "string"},
+						"job_title":      map[string]any{"type": "string"},
+						"department":     map[string]any{"type": "string"},
+						"work_email":     map[string]any{"type": "string", "format": "email"},
+						"industry":       map[string]any{"type": "string"},
+						"seniority":      map[string]any{"type": "string"},
+						"start_date":     map[string]any{"type": "string", "format": "date"},
+						"work_mode":      map[string]any{"type": "string"},
+						"manager_name":   map[string]any{"type": "string"},
+						"office_city":    map[string]any{"type": "string"},
+						"office_state":   map[string]any{"type": "string"},
+					},
+				},
+				"Education": map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"level":           map[string]any{"type": "string"},
+						"degree_type":     map[string]any{"type": "string"},
+						"school_name":     map[string]any{"type": "string"},
+						"major":           map[string]any{"type": "string"},
+						"graduation_year": map[string]any{"type": "integer"},
+						"student_status":  map[string]any{"type": "string"},
+						"school_city":     map[string]any{"type": "string"},
+						"school_state":    map[string]any{"type": "string"},
+						"school_email":    map[string]any{"type": "string", "format": "email"},
+					},
+				},
+				"Sensitive": map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"ssn": map[string]any{"type": "string"},
+						"driver_license": map[string]any{
+							"$ref": "#/components/schemas/DriverLicense",
+						},
+						"passport": map[string]any{
+							"$ref": "#/components/schemas/Passport",
+						},
+						"bank_card": map[string]any{
+							"$ref": "#/components/schemas/BankCard",
+						},
+					},
+				},
+				"DriverLicense": map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"number":     map[string]any{"type": "string"},
+						"state_code": map[string]any{"type": "string"},
+					},
+				},
+				"Passport": map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"number":  map[string]any{"type": "string"},
+						"country": map[string]any{"type": "string"},
+					},
+				},
+				"BankCard": map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"brand":        map[string]any{"type": "string"},
+						"number":       map[string]any{"type": "string"},
+						"expiry_month": map[string]any{"type": "integer"},
+						"expiry_year":  map[string]any{"type": "integer"},
+						"cvv":          map[string]any{"type": "string"},
+					},
+				},
 				"Address": map[string]any{
 					"type": "object",
 					"properties": map[string]any{
 						"street_line1": map[string]any{"type": "string"},
+						"street_line2": map[string]any{"type": "string"},
 						"city":         map[string]any{"type": "string"},
 						"state":        map[string]any{"type": "string"},
 						"state_code":   map[string]any{"type": "string"},
