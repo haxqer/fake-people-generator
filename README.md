@@ -68,19 +68,70 @@ PORT=9090 go run ./cmd/server
 构建镜像：
 
 ```bash
-docker build -t fake-people-generator .
+docker build -t fake-people-generator:local .
 ```
 
 启动容器：
 
 ```bash
-docker run --rm -p 8080:8080 fake-people-generator
+docker run --rm -p 8080:8080 fake-people-generator:local
 ```
 
 如果需要自定义容器内监听端口：
 
 ```bash
-docker run --rm -e PORT=9090 -p 9090:9090 fake-people-generator
+docker run --rm -e PORT=9090 -p 9090:9090 fake-people-generator:local
+```
+
+当前 `Dockerfile` 使用多阶段构建：
+
+- 构建阶段：`golang:1.25-bookworm`
+- 运行阶段：`distroless static-debian12:nonroot`
+- 默认容器端口：`8080`
+- 支持 `linux/amd64` 和 `linux/arm64` 多架构构建
+
+## GitHub Actions 自动构建并推送 Docker Hub
+
+仓库已添加工作流：
+
+```text
+.github/workflows/docker.yml
+```
+
+触发方式：
+
+- push 到 `main`
+- push 版本标签，例如 `v0.1.0`
+- 手动触发 `workflow_dispatch`
+
+在 GitHub 仓库里需要先配置以下 secrets：
+
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN`
+
+可选配置一个仓库变量：
+
+- `DOCKERHUB_REPOSITORY`
+
+说明：
+
+- 如果没有设置 `DOCKERHUB_REPOSITORY`，默认使用当前 GitHub 仓库名作为 Docker Hub 镜像名
+- 最终镜像名默认是 `docker.io/<DOCKERHUB_USERNAME>/fake-people-generator`
+- `main` 分支会推送 `latest`、`main` 和 `sha-<commit>` 标签
+- `v*` 标签会推送对应版本标签，例如 `v0.1.0`
+- 工作流会先执行 `go test ./...`，通过后再构建并推送多架构镜像
+
+发布示例：
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+拉取示例：
+
+```bash
+docker pull docker.io/<DOCKERHUB_USERNAME>/fake-people-generator:latest
 ```
 
 ## API

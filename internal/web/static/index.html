@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta
@@ -9,288 +9,299 @@
     <title>Fake People Generator Studio</title>
     <meta
       name="description"
-      content="面向测试、演示和联调用途的合成资料生成工具。"
+      content="Synthetic datasets for development and testing."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/assets/styles.css" />
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M19 18h26v6H26v10h16v6H26v16h-7z' fill='white'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d5e92'/%3E%3Cpath d='M18 18h20c5 0 8 3 8 8v20h-8V28c0-2-1-3-3-3H26v21h-8z' fill='white'/%3E%3C/svg%3E"
     />
     <script defer src="/assets/app.js"></script>
   </head>
   <body>
-    <div class="page-shell">
-      <header class="hero">
-        <div class="hero-copy">
-          <p class="hero-kicker">Synthetic Identity Workbench</p>
-          <h1>Fake People Generator Studio</h1>
-          <p class="hero-description">
-            一个面向测试、演示和联调的合成资料生成台。默认只展示高频参数，把年龄、字段扩展和原始 JSON 收进
-            Advanced，需要时再展开。
-          </p>
-          <div class="hero-benefits">
-            <article class="benefit-card">
-              <span>Default-safe</span>
-              <strong>Core fields first</strong>
-              <p>默认先返回高频基础资料，不让低频配置挤占主界面。</p>
-            </article>
-            <article class="benefit-card">
-              <span>Batch-ready</span>
-              <strong>Fast iteration loop</strong>
-              <p>参数修改后可自动刷新，适合快速调试页面、接口和 mock 流程。</p>
-            </article>
-            <article class="benefit-card">
-              <span>Copy-friendly</span>
-              <strong>JSON stays close</strong>
-              <p>请求和响应原文仍然保留，但默认折叠，避免干扰主要任务。</p>
-            </article>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+              <path
+                d="M12.9 2 5.8 12.2h4.4L9.1 22l9.1-12.4h-4.5L12.9 2Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div>
+            <strong>Workbench</strong>
+            <span>v1.0.0-stable</span>
           </div>
         </div>
-        <aside class="hero-aside">
-          <div class="spotlight-card">
-            <p class="section-label">Studio Snapshot</p>
-            <h2>Less clutter, same power.</h2>
-            <div class="hero-stats">
-              <article>
-                <span>目标场景</span>
-                <strong>QA / Demo / Mock API</strong>
-              </article>
-              <article>
-                <span>接口地址</span>
-                <strong>/v1/profiles/generate</strong>
-              </article>
-              <article>
-                <span>资料范围</span>
-                <strong>US only / 1-100 profiles</strong>
-              </article>
-              <article>
-                <span>部署方式</span>
-                <strong>Go Binary / Docker</strong>
-              </article>
-            </div>
-            <p class="spotlight-note">
-              大多数用户只需要数量、性别、州和自动生成。其余配置保留，但不再默认占据整屏空间。
-            </p>
-          </div>
-        </aside>
-      </header>
 
-      <main class="workspace">
-        <aside class="control-panel panel">
-          <div class="panel-header stacked">
-            <div>
-              <p class="section-label">Primary Controls</p>
-              <h2>先完成常用设置</h2>
+        <form id="generator-form" class="sidebar-form" novalidate>
+          <section class="sidebar-section">
+            <div class="section-topline">
+              <label class="section-title" for="count">Result Count</label>
+              <output id="count-value" class="count-badge" for="count">4</output>
             </div>
-            <p class="panel-copy">
-              默认值已经适合大多数预览场景。只有当你需要更多筛选或更多返回字段时，再展开
-              Advanced。
-            </p>
-          </div>
+            <input
+              id="count"
+              name="count"
+              class="range-input"
+              type="range"
+              min="1"
+              max="20"
+              value="4"
+            />
+          </section>
 
-          <form id="generator-form" class="form-stack" novalidate>
-            <div class="mini-grid">
-              <article class="mini-card">
-                <span>Dataset</span>
-                <strong>United States</strong>
-                <p>当前版本固定输出 US 合成资料。</p>
-              </article>
-              <article class="mini-card">
-                <span>Default mode</span>
-                <strong>Auto preview on</strong>
-                <p>修改参数后会自动拉取一版新的示例结果。</p>
-              </article>
+          <section class="sidebar-section">
+            <label class="field">
+              <span>Gender</span>
+              <select id="gender" name="gender">
+                <option value="random" selected>All</option>
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+              </select>
+            </label>
+          </section>
+
+          <section class="sidebar-section">
+            <label class="field">
+              <span>State (US)</span>
+              <select id="state" name="state">
+                <option value="" selected>All States</option>
+              </select>
+            </label>
+          </section>
+
+          <section class="sidebar-section">
+            <div class="section-topline">
+              <span class="section-title">Age Range</span>
+              <label class="inline-switch">
+                <span>Enable</span>
+                <input id="age-enabled" name="age_enabled" type="checkbox" checked />
+              </label>
             </div>
-
-            <div class="field-grid two-up primary-grid">
-              <label class="field">
-                <span>Count</span>
+            <div class="compact-field-grid">
+              <label class="field field-inline">
+                <span>Min</span>
                 <input
-                  id="count"
-                  name="count"
+                  id="age-min"
+                  name="age_min"
                   type="number"
-                  min="1"
+                  min="0"
                   max="100"
-                  value="3"
+                  value="18"
                   inputmode="numeric"
                 />
               </label>
 
-              <label class="field">
-                <span>Gender</span>
-                <select id="gender" name="gender">
-                  <option value="random" selected>random</option>
-                  <option value="female">female</option>
-                  <option value="male">male</option>
-                </select>
-              </label>
-
-              <label class="field full-width">
-                <span>State</span>
+              <label class="field field-inline">
+                <span>Max</span>
                 <input
-                  id="state"
-                  name="state"
-                  type="text"
-                  maxlength="2"
-                  placeholder="CA"
-                  autocomplete="off"
+                  id="age-max"
+                  name="age_max"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value="65"
+                  inputmode="numeric"
                 />
               </label>
             </div>
+          </section>
 
-            <div class="toggles">
+          <section class="sidebar-section">
+            <div class="toggle-card">
+              <div>
+                <strong>Auto-generate</strong>
+                <p>Refreshes a new batch when filters change.</p>
+              </div>
               <label class="switch">
                 <input id="auto-generate" name="auto_generate" type="checkbox" checked />
-                <span>参数变动后自动生成</span>
+                <span class="switch-track" aria-hidden="true"></span>
               </label>
             </div>
+          </section>
 
-            <p id="form-message" class="form-message" aria-live="polite"></p>
+          <p id="form-message" class="form-message" aria-live="polite"></p>
 
-            <div class="action-row">
-              <button id="generate-button" type="submit" class="button primary">
-                Generate
-              </button>
-              <button id="reset-button" type="button" class="button secondary">
-                Reset
-              </button>
-              <button id="copy-request-button" type="button" class="button ghost">
-                Copy Request
-              </button>
-            </div>
+          <div class="sidebar-actions">
+            <button id="generate-button" type="submit" class="button primary">
+              Generate Profiles
+            </button>
+          </div>
 
-            <details id="advanced-panel" class="advanced-panel">
-              <summary class="advanced-summary">
-                <div>
-                  <p class="section-label">Advanced</p>
-                  <h3>低频筛选、字段扩展与请求预览</h3>
-                </div>
-                <div class="advanced-meta">
-                  <span id="advanced-summary-text" class="summary-hint">Age off / Auto on</span>
-                  <span id="field-count" class="pill">0 fields</span>
-                </div>
-              </summary>
-
-              <div class="advanced-content">
-                <section class="subsection">
-                  <div class="subsection-header">
-                    <div>
-                      <p class="section-label">Age Filter</p>
-                      <h3>年龄范围</h3>
-                    </div>
-                    <label class="switch">
-                      <input id="age-enabled" name="age_enabled" type="checkbox" />
-                      <span>启用</span>
-                    </label>
-                  </div>
-
-                  <div class="field-grid two-up">
-                    <label class="field">
-                      <span>Min Age</span>
-                      <input
-                        id="age-min"
-                        name="age_min"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value="24"
-                        inputmode="numeric"
-                        disabled
-                      />
-                    </label>
-
-                    <label class="field">
-                      <span>Max Age</span>
-                      <input
-                        id="age-max"
-                        name="age_max"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value="42"
-                        inputmode="numeric"
-                        disabled
-                      />
-                    </label>
-                  </div>
-                </section>
-
-                <section class="subsection">
-                  <div class="subsection-header">
-                    <div>
-                      <p class="section-label">Field Expansion</p>
-                      <h3>附加字段</h3>
-                    </div>
-                  </div>
-
-                  <p class="subsection-note">
-                    默认只勾选非敏感增强字段。敏感字段仅建议用于测试环境或隔离数据集。
-                  </p>
-
-                  <div id="field-groups" class="field-groups"></div>
-                </section>
-
-                <details class="code-disclosure">
-                  <summary class="preview-header">
-                    <div>
-                      <p class="section-label">Request Preview</p>
-                      <h3>将要发送的 JSON</h3>
-                    </div>
-                    <span class="summary-hint">展开查看</span>
-                  </summary>
-                  <pre id="request-preview" class="code-block"></pre>
-                </details>
+          <details id="advanced-panel" class="sidebar-disclosure" open>
+            <summary>
+              <div>
+                <p class="eyebrow">Schema</p>
+                <h3>Expansion Fields</h3>
               </div>
-            </details>
-          </form>
-        </aside>
+              <div class="disclosure-meta">
+                <span id="advanced-summary-text" class="summary-hint">Age 18-65 / Auto on</span>
+                <span id="field-count" class="pill">0 fields</span>
+              </div>
+            </summary>
 
-        <section class="results-panel panel">
-          <div class="panel-header results-head">
-            <div>
-              <p class="section-label">Generated Output</p>
-              <h2>结果区优先展示可读内容</h2>
+            <div class="disclosure-body">
+              <div id="field-groups" class="field-groups"></div>
             </div>
-            <div class="action-row compact">
-              <button id="copy-response-button" type="button" class="button ghost">
-                Copy JSON
-              </button>
-              <button id="download-response-button" type="button" class="button secondary">
-                Download
-              </button>
+          </details>
+
+          <details class="sidebar-disclosure">
+            <summary>
+              <div>
+                <p class="eyebrow">Request</p>
+                <h3>Payload Preview</h3>
+              </div>
+              <span class="summary-hint">JSON</span>
+            </summary>
+
+            <div class="disclosure-body">
+              <pre id="request-preview" class="code-block compact"></pre>
+              <div class="secondary-actions">
+                <button id="reset-button" type="button" class="button secondary">
+                  Reset
+                </button>
+                <button id="copy-request-button" type="button" class="button ghost">
+                  Copy Request
+                </button>
+              </div>
+            </div>
+          </details>
+        </form>
+
+        <nav class="sidebar-nav" aria-label="Workspace sections">
+          <button class="nav-item active" type="button" data-nav-target="generator-form">
+            Generator
+          </button>
+          <button class="nav-item" type="button" data-nav-target="advanced-panel">
+            Schema
+          </button>
+          <button class="nav-item" type="button" data-nav-target="response-disclosure">
+            History
+          </button>
+          <button class="nav-item muted" type="button" data-nav-target="status-strip">
+            Account
+          </button>
+        </nav>
+      </aside>
+
+      <div class="workspace">
+        <header class="topbar">
+          <div class="topbar-main">
+            <div class="product-lockup">
+              <strong>Logical Architect</strong>
+              <nav class="top-tabs" aria-label="Primary navigation">
+                <a class="top-tab active" href="/">Workbench</a>
+                <a class="top-tab" href="/docs">API Reference</a>
+                <a
+                  class="top-tab"
+                  href="/openapi.json"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Schema
+                </a>
+              </nav>
+            </div>
+
+            <div class="topbar-meta">
+              <div class="icon-actions" aria-hidden="true">
+                <span class="icon-chip">?</span>
+                <span class="icon-chip">+</span>
+              </div>
+              <div class="status-pill">
+                <span class="status-dot"></span>
+                <span id="latency-pill-value">-- ms latency</span>
+              </div>
+              <div class="status-pill strong">
+                <span class="status-count-dot"></span>
+                <span id="generated-total-value">0 Profiles Generated</span>
+              </div>
             </div>
           </div>
 
-          <div id="status-banner" class="status-banner idle" aria-live="polite">
-            等待首次自动生成。
-          </div>
-
-          <div id="meta-grid" class="meta-grid"></div>
-
-          <div id="profiles" class="profiles-grid">
-            <article class="empty-state">
-              <p>结果会显示在这里。</p>
+          <div class="filter-strip">
+            <article class="filter-chip">
+              <span>Age Range</span>
+              <strong id="age-summary-chip">18 - 65</strong>
+            </article>
+            <article class="filter-chip wide">
+              <span>Fields</span>
+              <strong id="field-summary-chip">Employment, Education, SSN, Contact</strong>
             </article>
           </div>
+        </header>
 
-          <details class="code-disclosure response-disclosure">
-            <summary class="preview-header">
+        <main class="canvas">
+          <section class="results-board">
+            <div class="results-header">
               <div>
-                <p class="section-label">Raw Response</p>
-                <h3>原始响应</h3>
+                <h1>Generation Result</h1>
+                <p>Synthetic datasets for development and testing</p>
               </div>
-              <span class="summary-hint">展开查看</span>
-            </summary>
-            <pre id="response-preview" class="code-block large"></pre>
-          </details>
-        </section>
-      </main>
+              <div class="results-actions">
+                <button id="copy-response-button" type="button" class="button secondary">
+                  Copy JSON
+                </button>
+                <button id="download-response-button" type="button" class="button primary">
+                  Export
+                </button>
+              </div>
+            </div>
+
+            <div id="status-banner" class="status-banner idle" aria-live="polite">
+              Waiting for the first generated batch.
+            </div>
+
+            <div id="meta-grid" class="meta-grid"></div>
+
+            <div id="profiles" class="profiles-grid">
+              <article class="empty-state">
+                <p>Generated profiles will appear here.</p>
+              </article>
+            </div>
+
+            <button id="next-batch-button" class="batch-tile" type="button">
+              <span class="batch-plus" aria-hidden="true">+</span>
+              <span>Generate Next Batch</span>
+            </button>
+
+            <details id="response-disclosure" class="response-disclosure">
+              <summary>
+                <div>
+                  <p class="eyebrow">Response</p>
+                  <h3>Raw JSON Output</h3>
+                </div>
+                <span class="summary-hint">Expand</span>
+              </summary>
+              <pre id="response-preview" class="code-block large"></pre>
+            </details>
+          </section>
+        </main>
+
+        <footer id="status-strip" class="status-strip">
+          <div class="status-strip-item success">
+            <span class="status-led"></span>
+            <span>System Operational</span>
+          </div>
+          <div class="status-strip-item">
+            <span>API Usage</span>
+            <strong id="api-usage">14.2%</strong>
+          </div>
+          <div class="status-strip-item end">
+            <span>Session</span>
+            <strong id="session-id">----</strong>
+          </div>
+        </footer>
+      </div>
     </div>
   </body>
 </html>

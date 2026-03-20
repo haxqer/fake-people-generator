@@ -48,7 +48,7 @@ var universitySuffixes = []string{
 	"University", "State University", "College", "Institute of Technology",
 }
 
-func generateEducationRecord(rng *mathrand.Rand, generatedAt time.Time, age int, occupation string, firstName string, lastName string, state dataset.State, homeCity dataset.City) educationRecord {
+func generateEducationRecord(rng *mathrand.Rand, generatedAt time.Time, age int, occupation string, firstHandle string, lastHandle string, state dataset.State, homeCity dataset.City) educationRecord {
 	schoolCity := selectSchoolCity(rng, state, homeCity)
 	schoolState := state.Name
 
@@ -92,7 +92,7 @@ func generateEducationRecord(rng *mathrand.Rand, generatedAt time.Time, age int,
 
 		assignAdultEducation(rng, generatedAt, age, occupation, &record)
 		record.SchoolName = generateSchoolName(rng, record.Level, schoolCity, schoolState)
-		record.SchoolEmail = generateSchoolEmail(firstName, lastName, record)
+		record.SchoolEmail = generateSchoolEmail(firstHandle, lastHandle, record)
 		return record
 	}
 }
@@ -285,7 +285,7 @@ func generateSchoolName(rng *mathrand.Rand, level string, schoolCity string, sch
 	}
 }
 
-func generateSchoolEmail(firstName string, lastName string, record educationRecord) string {
+func generateSchoolEmail(firstHandle string, lastHandle string, record educationRecord) string {
 	if record.StudentStatus != "enrolled" || record.SchoolName == "" {
 		return ""
 	}
@@ -294,7 +294,7 @@ func generateSchoolEmail(firstName string, lastName string, record educationReco
 		return ""
 	}
 
-	localPart := normalizeHandlePart(firstName) + "." + normalizeHandlePart(lastName)
+	localPart := firstHandle + "." + lastHandle
 	localPart = strings.Trim(localPart, ".")
 	if localPart == "" {
 		localPart = "student"

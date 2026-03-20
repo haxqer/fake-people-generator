@@ -1,6 +1,8 @@
 package generator_test
 
 import (
+	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -212,6 +214,23 @@ func TestGenerateInvalidIncludeField(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("expected validation error for invalid include_fields")
+	}
+}
+
+func TestGenerateContextCanceled(t *testing.T) {
+	gen := generator.New(func() time.Time {
+		return time.Date(2026, time.March, 20, 15, 4, 5, 0, time.UTC)
+	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := gen.GenerateContext(ctx, generator.GenerateInput{
+		Country: "US",
+		Count:   100,
+	})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected context.Canceled, got %v", err)
 	}
 }
 

@@ -1,3 +1,9 @@
 .git
+.github
 .idea
+.playwright-cli
 README.md
+output
+generator.test
+*.test
+.DS_Store

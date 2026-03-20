@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -106,6 +107,22 @@ type Generator struct {
 	now  func() time.Time
 }
 
+var ageBands = [...]struct {
+	Min    int
+	Max    int
+	Weight int
+}{
+	{Min: 0, Max: 12, Weight: 15},
+	{Min: 13, Max: 17, Weight: 7},
+	{Min: 18, Max: 24, Weight: 10},
+	{Min: 25, Max: 34, Weight: 18},
+	{Min: 35, Max: 44, Weight: 16},
+	{Min: 45, Max: 54, Weight: 14},
+	{Min: 55, Max: 64, Weight: 10},
+	{Min: 65, Max: 79, Weight: 8},
+	{Min: 80, Max: 95, Weight: 2},
+}
+
 func New(now func() time.Time) *Generator {
 	if now == nil {
 		now = time.Now
@@ -118,6 +135,14 @@ func New(now func() time.Time) *Generator {
 }
 
 func (g *Generator) Generate(input GenerateInput) (Result, error) {
+	return g.GenerateContext(context.Background(), input)
+}
+
+func (g *Generator) GenerateContext(ctx context.Context, input GenerateInput) (Result, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	if strings.ToUpper(strings.TrimSpace(input.Country)) != "US" {
 		return Result{}, &ValidationError{Message: "country must be US"}
 	}
@@ -134,6 +159,10 @@ func (g *Generator) Generate(input GenerateInput) (Result, error) {
 		return Result{}, err
 	}
 
+	if err := ctx.Err(); err != nil {
+		return Result{}, err
+	}
+
 	generatedAt := g.now().UTC().Truncate(time.Second)
 	rng, err := newRandom()
 	if err != nil {
@@ -142,6 +171,10 @@ func (g *Generator) Generate(input GenerateInput) (Result, error) {
 
 	profiles := make([]Profile, 0, input.Count)
 	for i := 0; i < input.Count; i++ {
+		if err := ctx.Err(); err != nil {
+			return Result{}, err
+		}
+
 		profile, err := g.generateProfile(rng, generatedAt, filters, selection)
 		if err != nil {
 			return Result{}, err
@@ -205,15 +238,14 @@ func (g *Generator) generateProfile(rng *mathrand.Rand, generatedAt time.Time, f
 	firstName := g.selectFirstName(rng, actualGender)
 	middleName := g.selectDistinctFirstName(rng, actualGender, firstName)
 	lastName := selectWeightedValue(rng, g.data.LastNames)
+	firstHandle := normalizeHandlePart(firstName)
+	lastHandle := normalizeHandlePart(lastName)
 	age := selectAge(rng, filters)
 	birthDate := randomBirthDate(rng, generatedAt, age)
+	birthDateText := birthDate.Format("2006-01-02")
 	areaCode := city.AreaCodes[rng.Intn(len(city.AreaCodes))]
 
-	profileID, err := newUUID()
-	if err != nil {
-		return Profile{}, fmt.Errorf("generate uuid: %w", err)
-	}
-
+	profileID := newUUID(rng)
 	phone := generatePhone(rng, areaCode)
 	address := Address{
 		StreetLine1: generateStreetAddress(rng, g.data),
@@ -223,11 +255,14 @@ func (g *Generator) generateProfile(rng *mathrand.Rand, generatedAt time.Time, f
 		StateCode:   state.Code,
 		PostalCode:  city.PostalCode,
 	}
-	username := generateUsername(rng, firstName, lastName, birthDate.Format("2006-01-02"))
-	email := generateEmail(rng, username, firstName, lastName, g.data)
+	username := generateUsername(rng, firstHandle, lastHandle, birthDateText)
+	email := generateEmail(rng, username, firstHandle, lastHandle, g.data)
 	occupation := selectOccupation(rng, age, g.data)
-	educationRecord := generateEducationRecord(rng, generatedAt, age, occupation, firstName, lastName, state, city)
-	employment := g.generateEmployment(rng, age, occupation, firstName, lastName, state, city, selection, educationRecord, generatedAt)
+	var educationRecord educationRecord
+	if selection.wantsEducation() || selection.EmploymentStartDate {
+		educationRecord = generateEducationRecord(rng, generatedAt, age, occupation, firstHandle, lastHandle, state, city)
+	}
+	employment := g.generateEmployment(rng, age, occupation, firstName, lastName, firstHandle, lastHandle, state, city, selection, educationRecord, generatedAt)
 	education := buildEducation(selection, educationRecord)
 	sensitive := buildSensitive(selection, rng, generatedAt, state)
 
@@ -240,7 +275,7 @@ func (g *Generator) generateProfile(rng *mathrand.Rand, generatedAt time.Time, f
 		LastName:      lastName,
 		FullName:      buildFullName(firstName, middleName, lastName),
 		Age:           calculateAge(birthDate, generatedAt),
-		BirthDate:     birthDate.Format("2006-01-02"),
+		BirthDate:     birthDateText,
 		MaritalStatus: selectMaritalStatus(rng, age),
 		Occupation:    occupation,
 		Username:      username,
@@ -300,22 +335,6 @@ func selectAge(rng *mathrand.Rand, filters Filters) int {
 			return *filters.AgeMin
 		}
 		return *filters.AgeMin + rng.Intn(*filters.AgeMax-*filters.AgeMin+1)
-	}
-
-	ageBands := []struct {
-		Min    int
-		Max    int
-		Weight int
-	}{
-		{Min: 0, Max: 12, Weight: 15},
-		{Min: 13, Max: 17, Weight: 7},
-		{Min: 18, Max: 24, Weight: 10},
-		{Min: 25, Max: 34, Weight: 18},
-		{Min: 35, Max: 44, Weight: 16},
-		{Min: 45, Max: 54, Weight: 14},
-		{Min: 55, Max: 64, Weight: 10},
-		{Min: 65, Max: 79, Weight: 8},
-		{Min: 80, Max: 95, Weight: 2},
 	}
 
 	index, err := pickWeightedIndex(len(ageBands), func(i int) int {
@@ -444,15 +463,24 @@ func newRandom() (*mathrand.Rand, error) {
 	return mathrand.New(mathrand.NewSource(seed)), nil
 }
 
-func newUUID() (string, error) {
+func newUUID(rng *mathrand.Rand) string {
 	var raw [16]byte
-	if _, err := rand.Read(raw[:]); err != nil {
-		return "", err
+	for i := range raw {
+		raw[i] = byte(rng.Intn(256))
 	}
 
 	raw[6] = (raw[6] & 0x0f) | 0x40
 	raw[8] = (raw[8] & 0x3f) | 0x80
 
-	encoded := hex.EncodeToString(raw[:])
-	return fmt.Sprintf("%s-%s-%s-%s-%s", encoded[0:8], encoded[8:12], encoded[12:16], encoded[16:20], encoded[20:32]), nil
+	var encoded [36]byte
+	hex.Encode(encoded[0:8], raw[0:4])
+	encoded[8] = '-'
+	hex.Encode(encoded[9:13], raw[4:6])
+	encoded[13] = '-'
+	hex.Encode(encoded[14:18], raw[6:8])
+	encoded[18] = '-'
+	hex.Encode(encoded[19:23], raw[8:10])
+	encoded[23] = '-'
+	hex.Encode(encoded[24:36], raw[10:16])
+	return string(encoded[:])
 }

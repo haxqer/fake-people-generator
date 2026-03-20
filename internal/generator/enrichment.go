@@ -21,12 +21,10 @@ func (g *Generator) selectDistinctFirstName(rng *mathrand.Rand, gender Gender, f
 }
 
 func buildFullName(firstName string, middleName string, lastName string) string {
-	parts := []string{firstName}
-	if middleName != "" {
-		parts = append(parts, middleName)
+	if middleName == "" {
+		return firstName + " " + lastName
 	}
-	parts = append(parts, lastName)
-	return strings.Join(parts, " ")
+	return firstName + " " + middleName + " " + lastName
 }
 
 func generateAddressLine2(rng *mathrand.Rand, data *dataset.Data) string {
@@ -42,9 +40,7 @@ func generateAddressLine2(rng *mathrand.Rand, data *dataset.Data) string {
 	return fmt.Sprintf("%s %d", label, number)
 }
 
-func generateUsername(rng *mathrand.Rand, firstName string, lastName string, birthDate string) string {
-	first := normalizeHandlePart(firstName)
-	last := normalizeHandlePart(lastName)
+func generateUsername(rng *mathrand.Rand, first string, last string, birthDate string) string {
 	if first == "" {
 		first = "user"
 	}
@@ -69,20 +65,16 @@ func generateUsername(rng *mathrand.Rand, firstName string, lastName string, bir
 	}
 }
 
-func generateEmail(rng *mathrand.Rand, username string, firstName string, lastName string, data *dataset.Data) string {
+func generateEmail(rng *mathrand.Rand, username string, first string, last string, data *dataset.Data) string {
 	localPart := username
 	switch rng.Intn(3) {
 	case 0:
 		localPart = username
 	case 1:
-		first := normalizeHandlePart(firstName)
-		last := normalizeHandlePart(lastName)
 		if first != "" && last != "" {
 			localPart = fmt.Sprintf("%s.%s", first, last)
 		}
 	case 2:
-		first := normalizeHandlePart(firstName)
-		last := normalizeHandlePart(lastName)
 		if first != "" && last != "" {
 			localPart = fmt.Sprintf("%s%s%02d", string(first[0]), last, rng.Intn(100))
 		}
@@ -102,7 +94,7 @@ func selectOccupation(rng *mathrand.Rand, age int, data *dataset.Data) string {
 	}
 }
 
-func (g *Generator) generateEmployment(rng *mathrand.Rand, age int, occupation string, firstName string, lastName string, state dataset.State, city dataset.City, selection fieldSelection, education educationRecord, generatedAt time.Time) Employment {
+func (g *Generator) generateEmployment(rng *mathrand.Rand, age int, occupation string, firstName string, lastName string, firstHandle string, lastHandle string, state dataset.State, city dataset.City, selection fieldSelection, education educationRecord, generatedAt time.Time) Employment {
 	switch {
 	case age < 18:
 		return Employment{Status: "student"}
@@ -120,7 +112,7 @@ func (g *Generator) generateEmployment(rng *mathrand.Rand, age int, occupation s
 			CompanyDomain: companyDomain,
 			JobTitle:      jobTitle,
 			Department:    department,
-			WorkEmail:     generateWorkEmail(rng, firstName, lastName, companyDomain),
+			WorkEmail:     generateWorkEmail(rng, firstHandle, lastHandle, companyDomain),
 		}
 
 		if !selection.wantsEmploymentEnhancements() {
@@ -432,9 +424,7 @@ func generateEmploymentStartDate(rng *mathrand.Rand, generatedAt time.Time, age 
 	return time.Date(year, month, day, 0, 0, 0, 0, time.UTC).Format("2006-01-02")
 }
 
-func generateWorkEmail(rng *mathrand.Rand, firstName string, lastName string, companyDomain string) string {
-	first := normalizeHandlePart(firstName)
-	last := normalizeHandlePart(lastName)
+func generateWorkEmail(rng *mathrand.Rand, first string, last string, companyDomain string) string {
 	if first == "" || last == "" {
 		return ""
 	}
@@ -469,28 +459,27 @@ func selectMaritalStatus(rng *mathrand.Rand, age int) string {
 }
 
 func selectTimeZone(rng *mathrand.Rand, stateCode string) string {
-	var zones []string
-
 	switch stateCode {
 	case "AK":
-		zones = []string{"America/Anchorage"}
+		return "America/Anchorage"
 	case "HI":
-		zones = []string{"Pacific/Honolulu"}
+		return "Pacific/Honolulu"
 	case "AZ":
-		zones = []string{"America/Phoenix"}
+		return "America/Phoenix"
 	case "CA", "NV", "OR", "WA":
-		zones = []string{"America/Los_Angeles"}
+		return "America/Los_Angeles"
 	case "CO", "ID", "MT", "NM", "UT", "WY":
-		zones = []string{"America/Denver"}
+		return "America/Denver"
 	case "ND", "SD", "NE", "KS", "MN", "IA", "MO", "WI", "IL", "TN", "MS", "AL", "OK", "TX", "LA", "AR":
-		zones = []string{"America/Chicago"}
+		return "America/Chicago"
 	case "FL", "IN", "KY", "MI":
-		zones = []string{"America/New_York", "America/Chicago"}
+		if rng.Intn(2) == 0 {
+			return "America/New_York"
+		}
+		return "America/Chicago"
 	default:
-		zones = []string{"America/New_York"}
+		return "America/New_York"
 	}
-
-	return zones[rng.Intn(len(zones))]
 }
 
 func pickFromSet(rng *mathrand.Rand, values []string) string {

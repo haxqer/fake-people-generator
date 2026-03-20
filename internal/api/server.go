@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -81,7 +82,7 @@ func generateProfiles(gen *generator.Generator) http.HandlerFunc {
 			count = *req.Count
 		}
 
-		result, err := gen.Generate(generator.GenerateInput{
+		result, err := gen.GenerateContext(r.Context(), generator.GenerateInput{
 			Country:       req.Country,
 			Count:         count,
 			IncludeFields: req.IncludeFields,
@@ -93,6 +94,9 @@ func generateProfiles(gen *generator.Generator) http.HandlerFunc {
 			},
 		})
 		if err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return
+			}
 			writeAPIError(w, err)
 			return
 		}
